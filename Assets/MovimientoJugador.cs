@@ -38,5 +38,22 @@ public class MovimientoJugador : MonoBehaviour
 
         //Move es la funcion que nos ayuda a mover el personaje.
         controller.Move(mover * velocidad * Time.deltaTime);
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                Cursor.lockState = CursorLockMode.None; // Libera el ratón
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked; // Vuelve a bloquear la cámara
+                Cursor.visible = false;
+            }
+        }
+
+        // Si el cursor está libre, NO rotamos la cámara
+        if (Cursor.lockState != CursorLockMode.Locked) return;
     }
 }
