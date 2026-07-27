@@ -5,8 +5,11 @@ public class ControlPisadas : MonoBehaviour
     public AudioSource audioSource;
     public AudioClip[] sonidosPisadas;
 
-    public float intervaloPisadas = 0.5f; // Ritmo entre pasos en segundos
+    public float intervaloPisadas = 0.5f; // Ritmo continuo entre pasos
+    public float retrasoPrimerPaso = 0.2f; // Tiempo para sonar la primera pisada al presionar tecla
+
     private float temporizadorPasos = 0f;
+    private bool estabaMoviendose = false; // Nos ayuda a detectar el momento preciso en que empieza a caminar
 
     private CharacterController controller;
 
@@ -27,23 +30,30 @@ public class ControlPisadas : MonoBehaviour
         float inputZ = Input.GetAxisRaw("Vertical");
         bool seEstaMoviendo = (Mathf.Abs(inputX) > 0.1f || Mathf.Abs(inputZ) > 0.1f);
 
-        // 2. Si se mueve y está en el suelo (o si el controller se desplaza)
         if (seEstaMoviendo)
         {
-            // Acumulamos tiempo
+            // 2. Si acaba de empezar a moverse este frame (primer toque de tecla)
+            if (!estabaMoviendose)
+            {
+                // Configuramos el temporizador para que le falten exactamente 0.2s para sonar
+                temporizadorPasos = Mathf.Max(0f, intervaloPisadas - retrasoPrimerPaso);
+                estabaMoviendose = true;
+            }
+
+            // 3. Acumulamos tiempo
             temporizadorPasos += Time.deltaTime;
 
-            // Si llegamos al intervalo, suena la pisada
+            // 4. Cuando alcanza el intervalo, suena la pisada
             if (temporizadorPasos >= intervaloPisadas)
             {
                 ReproducirPisada();
-                temporizadorPasos = 0f; // Reiniciamos a 0 limpios
+                temporizadorPasos = 0f; // Se reinicia a 0 para mantener el ritmo continuo
             }
         }
         else
         {
-            // Si te detienes, dejamos el contador listo para el próximo arranque
-            // pero sin forzar que suene instantáneo para no romper el bucle
+            // Si el jugador se detiene, reseteamos las variables de control
+            estabaMoviendose = false;
             temporizadorPasos = 0f;
         }
     }
@@ -54,7 +64,7 @@ public class ControlPisadas : MonoBehaviour
 
         int indiceAleatorio = Random.Range(0, sonidosPisadas.Length);
 
-        // Un toque de variación sutil en el tono
+        // Variación sutil en el tono
         audioSource.pitch = Random.Range(0.9f, 1.1f);
 
         audioSource.PlayOneShot(sonidosPisadas[indiceAleatorio]);
